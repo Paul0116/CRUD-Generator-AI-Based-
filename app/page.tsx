@@ -174,42 +174,45 @@ export default function Home() {
 
         {/* Resizable Code Box */}
         <ResizableBox
-          width={1564}
-          height={700}
-          minConstraints={[300, 200]}
-          maxConstraints={[Infinity, 800]}
-          resizeHandles={["s"]}
-          className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col mt-4 relative"
-        >
-          {loading ? (
-            <div className="flex flex-col items-center justify-center w-full h-full">
-              <CircularProgress color="primary" />
-              <p className="mt-4 text-blue-400">AI is generating your code, please wait...</p>
-            </div>
-          ) : (
-            activeTab && (
-              <div className="w-full h-full relative">
-                {/* Copy Button */}
-                <button
-                  onClick={handleCopy}
-                  className="absolute top-7 right-10 bg-gray-700 p-2 rounded-md text-white hover:bg-gray-600 flex items-center"
-                >
-                  <Copy size={16} className="mr-1" />
-                  {copied ? "Copied" : "Copy"}
-                </button>
-
-                <SyntaxHighlighter
-                  language="java"
-                  style={oneDark}
-                  showLineNumbers
-                  className="w-full h-full"
-                >
-                  {codeSections[activeTab]}
-                </SyntaxHighlighter>
+            width={window.innerWidth < 768 ? window.innerWidth - 40 : 1564} // Responsive width
+            height={codeSections == null ? 200 : 700}
+            minConstraints={[300, 200]}
+            maxConstraints={[Infinity, 800]}
+            resizeHandles={["s"]}
+            className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col mt-4 relative w-full"
+          >
+            {loading ? (
+              <div className="flex flex-col items-center justify-center w-full h-full">
+                <CircularProgress color="primary" />
+                <p className="mt-4 text-blue-400 text-center text-sm md:text-base">
+                  AI is generating your code, please wait...
+                </p>
               </div>
-            )
-          )}
-        </ResizableBox>
+            ) : (
+              activeTab && (
+                <div className="w-full h-full relative">
+                  {/* Copy Button */}
+                  <button
+                    onClick={handleCopy}
+                    className="absolute top-4 right-4 bg-gray-700 p-2 rounded-md text-white hover:bg-gray-600 flex items-center text-sm md:text-base"
+                  >
+                    <Copy size={16} className="mr-1" />
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+
+                  <SyntaxHighlighter
+                    language="java"
+                    style={oneDark}
+                    showLineNumbers
+                    className="w-full h-full"
+                  >
+                    {codeSections[activeTab]}
+                  </SyntaxHighlighter>
+                </div>
+              )
+            )}
+          </ResizableBox>
+
 
 
 
