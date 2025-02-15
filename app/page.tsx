@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CircularProgress } from '@mui/material';
@@ -19,8 +19,9 @@ export default function Home() {
   const [showFieldModal, setShowFieldModal] = useState(false);
   const [newField, setNewField] = useState({ name: '', type: 'String' });
   const [isFieldsVisible, setIsFieldsVisible] = useState(true);
-
+  const codeSectionRef = useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(1564);
+  const [errors, setErrors] = useState<{ entity?: string; fields?: string }>({});
 
   useEffect(() => {
     if (typeof window === "undefined") return; // Ensure it's client-side
@@ -45,17 +46,42 @@ export default function Home() {
   };
 
   const addField = () => {
-    if (newField.name.trim() === '') return;
+    if (newField.name.trim() === '') {
+      setErrors((prev) => ({ ...prev, fields: 'Field name is required.' }));
+      return;
+    }
+    setErrors((prev) => ({ ...prev, fields: undefined }));
     setFields([...fields, newField]);
     setNewField({ name: '', type: 'String' });
     setShowFieldModal(false);
   };
 
   const handleGenerateCode = async () => {
+
+    let validationErrors: { entity?: string; fields?: string } = {};
+
+    if (entity.trim() === '') {
+      validationErrors.entity = 'Entity name is required.';
+    }
+    if (fields.length === 0) {
+      validationErrors.fields = 'At least one field is required.';
+    }
+  
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     setLoading(true);
     setCodeSections({});
     setCopied(false);
-  
+   // Scroll to the code section after code is generated
+   setTimeout(() => {
+    if (codeSectionRef.current) {
+      codeSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+ 
+  }, 100);
     try {
       const response = await fetch('/api/generatecrud', {
         method: 'POST',
@@ -80,8 +106,8 @@ export default function Home() {
       console.error('Error fetching or parsing JSON:', error);
       setCodeSections({ Error: 'Failed to fetch or parse code' });
     }
-  
-    setLoading(false);
+    setLoading(false)
+;
   };
   
 
@@ -102,6 +128,8 @@ export default function Home() {
               className="w-full mt-2 p-3 bg-gray-800 border border-gray-700 rounded-md text-white"
               placeholder="Enter entity name"
             />
+           {errors.entity && <p className="text-red-500 text-sm mt-1">{errors.entity}</p>}
+
           </div>
           <div>
             <label htmlFor="fields" className="block text-sm">Fields</label>
@@ -111,6 +139,8 @@ export default function Home() {
             >
               <Plus size={16} className="mr-2" /> Add Fields
             </button>
+            {errors.fields && <p className="text-red-500 text-sm mt-1">Field is required</p>}
+
           </div>
           <div>
             <label htmlFor="type" className="block text-sm">Database</label>
@@ -200,7 +230,7 @@ export default function Home() {
             className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col mt-4 relative w-full"
           >
             {loading ? (
-              <div className="flex flex-col items-center justify-center w-full h-full">
+              <div ref={codeSectionRef} className="flex flex-col items-center justify-center w-full h-full">
                 <CircularProgress color="primary" />
                 <p className="mt-4 text-blue-400 text-center text-sm md:text-base">
                   AI is generating your code, please wait...
@@ -258,6 +288,7 @@ export default function Home() {
                 className="w-full mt-2 p-2 bg-gray-700 rounded-md text-white"
                 placeholder="Enter field name"
               />
+                    {errors.fields && <p className="text-red-500 text-sm mt-1">{errors.fields}</p>}
             </div>
 
             <div className="mt-4">
