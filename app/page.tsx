@@ -58,7 +58,7 @@ export default function Home() {
 
   const handleGenerateCode = async () => {
 
-    let validationErrors: { entity?: string; fields?: string } = {};
+    const validationErrors: { entity?: string; fields?: string } = {};
 
     if (entity.trim() === '') {
       validationErrors.entity = 'Entity name is required.';
@@ -284,7 +284,7 @@ export default function Home() {
               <input
                 type="text"
                 value={newField.name}
-                onChange={(e) => setNewField({ ...newField, name: e.target.value })}
+                onChange={(e) => {setNewField({ ...newField, name: e.target.value }); }}
                 className="w-full mt-2 p-2 bg-gray-700 rounded-md text-white"
                 placeholder="Enter field name"
               />
