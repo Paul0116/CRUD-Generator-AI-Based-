@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CircularProgress } from '@mui/material';
@@ -19,6 +19,24 @@ export default function Home() {
   const [showFieldModal, setShowFieldModal] = useState(false);
   const [newField, setNewField] = useState({ name: '', type: 'String' });
   const [isFieldsVisible, setIsFieldsVisible] = useState(true);
+
+  const [width, setWidth] = useState(1564);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return; // Ensure it's client-side
+  
+    const updateWidth = () => {
+      console.log("Window width:", window.innerWidth);
+      setWidth(window.innerWidth < 768 ? window.innerWidth - 40 : 1564);
+    };
+  
+    updateWidth(); // Run once on mount
+  
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+  
+  
 
   const handleCopy = () => {
     navigator.clipboard.writeText(codeSections[activeTab] || '');
@@ -174,7 +192,7 @@ export default function Home() {
 
         {/* Resizable Code Box */}
         <ResizableBox
-            width={window.innerWidth < 768 ? window.innerWidth - 40 : 1564} // Responsive width
+            width={width} // Responsive width
             height={codeSections == null ? 200 : 700}
             minConstraints={[300, 200]}
             maxConstraints={[Infinity, 800]}
