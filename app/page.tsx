@@ -205,7 +205,7 @@ export default function Home() {
       </div>
       {/* Tabs for Code Sections */}
       <div className="w-full max-w-screen-2xl mx-auto mt-8">
-        <h2 className="text-xl font-semibold mb-4">Generated Code:</h2>
+        <h2 className="text-xl font-semibold mb-4"  ref={codeSectionRef}>Generated Code:</h2>
 
         {/* Tab Headers */}
         <div className="flex space-x-4 border-b border-gray-600">
@@ -230,7 +230,7 @@ export default function Home() {
             className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col mt-4 relative w-full"
           >
             {loading ? (
-              <div ref={codeSectionRef} className="flex flex-col items-center justify-center w-full h-full">
+              <div className="flex flex-col items-center justify-center w-full h-full">
                 <CircularProgress color="primary" />
                 <p className="mt-4 text-blue-400 text-center text-sm md:text-base">
                   AI is generating your code, please wait...
