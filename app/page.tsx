@@ -10,18 +10,20 @@ import 'react-resizable/css/styles.css';
 
 export default function Home() {
   const [entity, setEntity] = useState('');
-  const [fields, setFields] = useState<{ name: string; type: string }[]>([]);
-  const [type, setType] = useState('Mongo DB');
+  const [fields, setFields] = useState<{ name: string; type: string; isRequired: boolean; instructions: string }[]>([]);
+  const [language, setLanguage] = useState('java');
+  const [database, setType] = useState('Mongo DB');
   const [codeSections, setCodeSections] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('');
   const [showFieldModal, setShowFieldModal] = useState(false);
-  const [newField, setNewField] = useState({ name: '', type: 'String' });
+  const [newField, setNewField] = useState({ name: '', type: 'String', isRequired: false, instructions: '' });
   const [isFieldsVisible, setIsFieldsVisible] = useState(true);
   const codeSectionRef = useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [errors, setErrors] = useState<{ entity?: string; fields?: string }>({});
 
@@ -29,8 +31,16 @@ export default function Home() {
     if (typeof window === "undefined") return; // Ensure it's client-side
   
     const updateWidth = () => {
+      if(window.innerWidth < 769)
+        setIsCollapsed(true);
+      else
+      setIsCollapsed(false);
       console.log("Window width:", window.innerWidth);
-      setWidth(window.innerWidth < 768 ? window.innerWidth - 50 : window.innerWidth-50);
+      setWidth(window.innerWidth < 768 ? window.innerWidth - 50 
+        : window.innerWidth > 768 && window.innerWidth < 1250 ?  window.innerWidth - 50
+        : window.innerWidth > 1250 ?  1530
+        : 0
+      );
       setHeight(window.innerWidth < 768 ? 200 : 400);
     };
   
@@ -55,7 +65,7 @@ export default function Home() {
     }
     setErrors((prev) => ({ ...prev, fields: undefined }));
     setFields([...fields, newField]);
-    setNewField({ name: '', type: 'String' });
+    setNewField({ name: '', type: 'String', isRequired: false, instructions: '' });
     setShowFieldModal(false);
   };
 
@@ -89,7 +99,7 @@ export default function Home() {
       const response = await fetch('/api/generatecrud', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entity, fields, type }),
+        body: JSON.stringify({ entity, fields, database, language }),
       });
   
       if (!response.ok) {
@@ -120,7 +130,21 @@ export default function Home() {
         <h1 className="text-3xl font-bold mb-6 text-center">AI CRUD Code Generator</h1>
 
         {/* Form Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <label htmlFor="language" className="block text-sm">Programming Language</label>
+            <select
+              id="language"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="w-full mt-2 p-3 bg-gray-800 border border-gray-700 rounded-md text-white"
+            >
+              <option value="java">Java</option>
+              <option value="react js">React JS</option>
+              <option value="next js">Next JS</option>
+              <option value="node js">Node JS</option>
+            </select>
+          </div>
           <div>
             <label htmlFor="entity" className="block text-sm">Entity Name</label>
             <input
@@ -134,6 +158,19 @@ export default function Home() {
            {errors.entity && <p className="text-red-500 text-sm mt-1">{errors.entity}</p>}
 
           </div>
+       
+          <div>
+            <label htmlFor="type" className="block text-sm">Database</label>
+            <select
+              id="type"
+              value={database}
+              onChange={(e) => setType(e.target.value)}
+              className="w-full mt-2 p-3 bg-gray-800 border border-gray-700 rounded-md text-white"
+            >
+              <option value="Mongo DB">Mongo DB</option>
+              <option value="Postgre SQL">Postgre SQL</option>
+            </select>
+          </div>
           <div>
             <label htmlFor="fields" className="block text-sm">Fields</label>
             <button
@@ -144,18 +181,6 @@ export default function Home() {
             </button>
             {errors.fields && <p className="text-red-500 text-sm mt-1">Field is required</p>}
 
-          </div>
-          <div>
-            <label htmlFor="type" className="block text-sm">Database</label>
-            <select
-              id="type"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full mt-2 p-3 bg-gray-800 border border-gray-700 rounded-md text-white"
-            >
-              <option value="Mongo DB">Mongo DB</option>
-              <option value="Postgre SQL">Postgre SQL</option>
-            </select>
           </div>
         </div>
 
@@ -184,6 +209,8 @@ export default function Home() {
                 <tr className="bg-gray-700">
                   <th className="p-2 border border-gray-600">Field Name</th>
                   <th className="p-2 border border-gray-600">Type</th>
+                  <th className="p-2 border border-gray-600">Is Required</th>
+                  <th className="p-2 border border-gray-600">Validation Instructions</th>
                 </tr>
               </thead>
               <tbody>
@@ -191,6 +218,8 @@ export default function Home() {
                   <tr key={index} className="text-center">
                     <td className="p-2 border border-gray-600">{field.name}</td>
                     <td className="p-2 border border-gray-600">{field.type}</td>
+                    <td className="p-2 border border-gray-600">{field.isRequired ? "Yes" : "no"}</td>
+                    <td className="p-2 border border-gray-600">{field.instructions}</td>
                   </tr>
                 ))}
               </tbody>
@@ -207,68 +236,79 @@ export default function Home() {
         </button>
       </div>
       {/* Tabs for Code Sections */}
-      <div className="w-full max-w-screen-2xl mx-auto mt-8">
-        <h2 className="text-xl font-semibold mb-4"  ref={codeSectionRef}>Generated Code:</h2>
 
-        {/* Tab Headers */}
-        <div className="flex space-x-4 border-b border-gray-600">
-          {Object.keys(codeSections).map((section) => (
-            <button
-              key={section}
-              className={`p-2 text-white ${activeTab === section ? 'border-b-2 border-blue-500' : 'opacity-50'}`}
-              onClick={() => setActiveTab(section)}
-            >
-              {section}
-            </button>
-          ))}
+      <div className="flex w-full max-w-screen-2xl mx-auto mt-8">
+    <ResizableBox
+      width={width}
+      height={800}
+      minConstraints={[300, 200]}
+      maxConstraints={[Infinity, 800]}
+      resizeHandles={["s"]}
+      className="flex-1 p-6 bg-gray-800 rounded-lg shadow-lg border border-gray-700 relative"
+    >
+      {loading ? (
+        <div className="flex items-center justify-center w-full h-full">
+          <p className="text-blue-400">AI is generating your code, please wait...</p>
         </div>
+      ) : (
+        activeTab && (
+          <div className="relative w-full h-full flex">
+            {/* Collapsible Sidebar Navigation */}
+            <div
+              className={`bg-gray-900 text-white flex flex-col py-4 border-r border-gray-700 mt-[0.5em] transition-all duration-300 ${
+                isCollapsed ? 'w-16' : 'w-56'
+              }`}
+            >
+              <button
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="text-white px-4 mb-4 focus:outline-none flex justify-end"
+              >
+                {isCollapsed ? '▶️' : '◀️'}
+              </button>
 
-        {/* Resizable Code Box */}
-        <ResizableBox
-            width={width <=0 ? 1450 : width} // Responsive width
-            height={height <= 0 ? 400 : Object.keys(codeSections).length > 0 ? 800 : height }
-            minConstraints={[300, 200]}
-            maxConstraints={[Infinity, 800]}
-            resizeHandles={["s"]}
-            className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col mt-4 relative w-full"
-          >
-            {loading ? (
-              <div className="flex flex-col items-center justify-center w-full h-full">
-                <CircularProgress color="primary" />
-                <p className="mt-4 text-blue-400 text-center text-sm md:text-base">
-                  AI is generating your code, please wait...
-                </p>
-              </div>
-            ) : (
-              activeTab && (
-                <div className="w-full h-full relative">
-                  {/* Copy Button */}
-                  <button
-                    onClick={handleCopy}
-                    className="absolute top-4 right-4 bg-gray-700 p-2 rounded-md text-white hover:bg-gray-600 flex items-center text-sm md:text-base"
-                  >
-                    <Copy size={16} className="mr-1" />
-                    {copied ? "Copied" : "Copy"}
-                  </button>
+              {!isCollapsed && <h2 className="text-lg font-semibold px-4 mb-6">Navigation</h2>}
 
-                  <SyntaxHighlighter
-                    language="java"
-                    style={oneDark}
-                    showLineNumbers
-                    className="w-full h-full"
-                  >
-                    {codeSections[activeTab]}
-                  </SyntaxHighlighter>
-                </div>
-              )
-            )}
-          </ResizableBox>
+              {Object.keys(codeSections).map((section) => (
+                <button
+                  key={section}
+                  title={section}
+                  onClick={() => setActiveTab(section)}
+                  className={`py-2 px-4 text-left hover:bg-gray-800 transition flex justify-between items-center ${
+                    activeTab === section ? 'bg-gray-800 border-l-4 border-blue-500' : ''
+                  } ${isCollapsed ? 'px-2 text-sm' : ''}`}
+                >
+                  <span>{isCollapsed ? section[0] : section}</span>
+                
+                </button>
+              ))}
+            </div>
 
+            {/* Copy Button */}
+            <button
+              onClick={handleCopy}
+              className="absolute top-4 right-4 bg-gray-700 p-2 rounded-md hover:bg-gray-600 flex items-center text-sm"
+            >
+              <Copy size={16} className="mr-1" />
+              {copied ? 'Copied' : 'Copy'}
+            </button>
 
+            {/* Code Block */}
+            <SyntaxHighlighter
+              language={language == 'java' ? 'java' : 'javascript'}
+              style={oneDark}
+              showLineNumbers
+              className="w-full h-full margin-[0]"
+            >
+              {codeSections[activeTab]}
+            </SyntaxHighlighter>
+          </div>
+        )
+      )}
 
+      {copied && <p className="text-green-400 mt-2">Code copied to clipboard!</p>}
+    </ResizableBox>
+  </div>      
 
-        {copied && <p className="text-green-400 mt-2">Code copied to clipboard!</p>}
-      </div>
 
 
       {/* Modal for Adding Fields */}
@@ -306,6 +346,29 @@ export default function Home() {
                 <option>Boolean</option>
               </select>
             </div>
+
+            <div className="mt-4">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={newField.isRequired}
+                  onChange={(e) => setNewField({ ...newField, isRequired: e.target.checked })}
+                />
+                <span className="ml-2">Required</span>
+              </label>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm">Validation Instructions</label>
+              <textarea
+        
+                value={newField.instructions}
+                onChange={(e) => setNewField({ ...newField, instructions: e.target.value })}
+                className="w-full mt-2 p-2 bg-gray-700 rounded-md text-white"
+                placeholder="Enter validation instructions"
+              />
+            </div>
+
 
             <button onClick={addField} className="mt-4 w-full p-2 bg-blue-600 rounded-md">
               Add Field
