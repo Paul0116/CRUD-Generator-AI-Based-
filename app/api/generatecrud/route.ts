@@ -21,21 +21,16 @@ const languagePrompts: Record<LanguageType, (entity: string, fields: string, dat
     - **Fields**: ${fields}
     - **Database**: ${database}
     - Use Lombok annotations for the entity and dto.
-    - Add Validations (e.g., @NotNull for required fields).
     - Include all validation instructions.
     - Use Response Entity
-    - Please remove validation on DTO
     - Please make repository extends database (e.g., MongoDB repository if MongoDB, JPA repository if PostgreSQL, etc.)
-    - If field has password, the password must be encrypted before saving to the database
     - 🚨 **Strict JSON Output Format** (NO explanations, NO markdown, NO extra text):
        **Rules:**
     1️⃣ **DO NOT** include explanations or formatting outside JSON.
     2️⃣ **DO NOT** wrap JSON in markdown (\\\json ... \\\).
     Output JSON:
     {
-      "Entity": "<Java entity code>",
-      "DTO": "<Java DTO code>",
-      "DTOConverter": "<Java DTO converter code>",
+      "model": "<Java entity code>",
       "Repository": "<Java repository code>",
       "Service": "<Java service code>",
       "Controller": "<Java controller code>"
