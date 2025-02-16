@@ -24,19 +24,18 @@ const languagePrompts: Record<LanguageType, (entity: string, fields: string, dat
     - Add Validations (e.g., @NotNull for required fields).
     - Include all validation instructions.
     - Use Response Entity
-    - Please remove valiadtion on DTO
-    - Please make repository extends database (e.g., Mongo db repository if mongo db, jpa repository if postgre or other sqls,  etc)
-    - if field has password, the password must be encrypted before saving to the database
+    - Please remove validation on DTO
+    - Please make repository extends database (e.g., MongoDB repository if MongoDB, JPA repository if PostgreSQL, etc.)
+    - If field has password, the password must be encrypted before saving to the database
     - 🚨 **Strict JSON Output Format** (NO explanations, NO markdown, NO extra text):
-    **Rules:**
+       **Rules:**
     1️⃣ **DO NOT** include explanations or formatting outside JSON.
-    2️⃣ **DO NOT** wrap JSON in markdown (\`\`\`json ... \`\`\`).
-    3️⃣ **ENSURE** valid Java syntax for each section.
+    2️⃣ **DO NOT** wrap JSON in markdown (\\\json ... \\\).
     Output JSON:
     {
       "Entity": "<Java entity code>",
-      "DTO": "<Java dto code>",
-      "DTOConverter": "<Java dto converter code>",
+      "DTO": "<Java DTO code>",
+      "DTOConverter": "<Java DTO converter code>",
       "Repository": "<Java repository code>",
       "Service": "<Java service code>",
       "Controller": "<Java controller code>"
@@ -50,16 +49,14 @@ const languagePrompts: Record<LanguageType, (entity: string, fields: string, dat
     - Use Redux Toolkit
     - Use RTK Query
     - Use ShadUI
-    - Use TypeScript.
+    - Use TypeScript
     - Use YUP validation (include required validations and special instructions).
-    - Use tailwind css as design
-    - Use table for data viewing
-    - USE modal for updating and adding data
+    - Use a table for data viewing
+    - Use a modal for updating and adding
     - 🚨 **Strict JSON Output Format** (NO explanations, NO markdown, NO extra text):
-    **Rules:**
+       **Rules:**
     1️⃣ **DO NOT** include explanations or formatting outside JSON.
-    2️⃣ **DO NOT** wrap JSON in markdown (\`\`\`json ... \`\`\`).
-    3️⃣ **ENSURE** valid Java syntax for each section.
+    2️⃣ **DO NOT** wrap JSON in markdown (\\\json ... \\\).
     Output JSON:
     {
       "${entity} component page": "<React components code>",
@@ -73,17 +70,14 @@ const languagePrompts: Record<LanguageType, (entity: string, fields: string, dat
     - **Entity Name**: ${entity}
     - **Fields**: ${fields}
     - Use the Next.js App Router and React Server Actions.
-    - Use React hooks and Tailwind components.
     - Use Redux Toolkit
     - Use RTK Query
-    - Use TypeScript.
+    - Use TypeScript
     - Use YUP validation (include required validations and special instructions).
-    - Use tailwind css as design
     - 🚨 **Strict JSON Output Format** (NO explanations, NO markdown, NO extra text):
-    **Rules:**
+       **Rules:**
     1️⃣ **DO NOT** include explanations or formatting outside JSON.
-    2️⃣ **DO NOT** wrap JSON in markdown (\`\`\`json ... \`\`\`).
-    3️⃣ **ENSURE** valid Java syntax for each section.
+    2️⃣ **DO NOT** wrap JSON in markdown (\\\json ... \\\).
     Output JSON:
     {
       "Component": "<Next.js component code>",
@@ -97,10 +91,9 @@ const languagePrompts: Record<LanguageType, (entity: string, fields: string, dat
     - **Database**: ${database}
     - Include required fields and any special instructions.
     - 🚨 **Strict JSON Output Format** (NO explanations, NO markdown, NO extra text):
-    **Rules:**
+       **Rules:**
     1️⃣ **DO NOT** include explanations or formatting outside JSON.
-    2️⃣ **DO NOT** wrap JSON in markdown (\`\`\`json ... \`\`\`).
-    3️⃣ **ENSURE** valid Java syntax for each section.
+    2️⃣ **DO NOT** wrap JSON in markdown (\\\json ... \\\).
     Output JSON:
     {
       "Model": "<Mongoose model code>",
@@ -128,17 +121,28 @@ export async function POST(req: Request) {
 
     const prompt = languagePrompts[language](entity, fieldDefinitions, database);
 
-    const response = await openai.chat.completions.create({
+    const stream = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: `You are an expert ${language} developer. Respond with pure JSON output only.` },
         { role: 'user', content: prompt },
       ],
-      response_format: { type: 'json_object' },
+      stream: true,
     });
 
-    const codeSnippet = response.choices[0]?.message?.content || '{}';
-    return NextResponse.json(JSON.parse(codeSnippet), { status: 200 });
+    const encoder = new TextEncoder();
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          controller.enqueue(encoder.encode(chunk.choices[0]?.delta?.content || ''));
+        }
+        controller.close();
+      },
+    });
+
+    return new NextResponse(readableStream, {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Error generating CRUD code:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

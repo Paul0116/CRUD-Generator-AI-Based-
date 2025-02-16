@@ -41,7 +41,7 @@ export default function Home() {
         : window.innerWidth > 1250 ?  1530
         : 0
       );
-      setHeight(window.innerWidth < 768 ? 200 : 800);
+      setHeight(window.innerWidth < 768 ? 800 : 800);
     };
   
     updateWidth(); // Run once on mount
