@@ -22,7 +22,7 @@ export default function Home() {
   const [isFieldsVisible, setIsFieldsVisible] = useState(true);
   const codeSectionRef = useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
-  const [height, setHeight] = useState(0);
+  const [height, setHeight] = useState(800);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const [errors, setErrors] = useState<{ entity?: string; fields?: string }>({});
@@ -41,7 +41,7 @@ export default function Home() {
         : window.innerWidth > 1250 ?  1530
         : 0
       );
-      setHeight(window.innerWidth < 768 ? 200 : 400);
+      setHeight(window.innerWidth < 768 ? 200 : 800);
     };
   
     updateWidth(); // Run once on mount
@@ -232,6 +232,7 @@ export default function Home() {
           className="w-full p-3 bg-blue-600 hover:bg-blue-700 rounded-md text-white font-semibold"
           disabled={loading}
         >
+   
           {loading ? 'Generating...' : 'Generate CRUD Code'}
         </button>
       </div>
@@ -240,14 +241,17 @@ export default function Home() {
       <div className="flex w-full max-w-screen-2xl mx-auto mt-8">
     <ResizableBox
       width={width}
-      height={800}
+      height={height}
       minConstraints={[300, 200]}
       maxConstraints={[Infinity, 800]}
       resizeHandles={["s"]}
       className="flex-1 p-6 bg-gray-800 rounded-lg shadow-lg border border-gray-700 relative"
     >
+ 
       {loading ? (
         <div className="flex items-center justify-center w-full h-full">
+             <CircularProgress />
+             <br /> <br />
           <p className="text-blue-400">AI is generating your code, please wait...</p>
         </div>
       ) : (
