@@ -104,7 +104,7 @@ export default function Home() {
           if (firstTab) setActiveTab(firstTab);
         }
       } catch (error) {
-        console.log('Partial data received, waiting for complete chunk...');
+        console.log('Partial data received, waiting for complete chunk...', error);
       }
     }
 
