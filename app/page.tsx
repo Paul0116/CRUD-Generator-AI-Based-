@@ -20,7 +20,9 @@ export default function Home() {
   const [newField, setNewField] = useState({ name: '', type: 'String' });
   const [isFieldsVisible, setIsFieldsVisible] = useState(true);
   const codeSectionRef = useRef<HTMLDivElement | null>(null);
-  const [width, setWidth] = useState(1564);
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+
   const [errors, setErrors] = useState<{ entity?: string; fields?: string }>({});
 
   useEffect(() => {
@@ -28,7 +30,8 @@ export default function Home() {
   
     const updateWidth = () => {
       console.log("Window width:", window.innerWidth);
-      setWidth(window.innerWidth < 768 ? window.innerWidth - 40 : 1564);
+      setWidth(window.innerWidth < 768 ? window.innerWidth - 50 : window.innerWidth-50);
+      setHeight(window.innerWidth < 768 ? 200 : 400);
     };
   
     updateWidth(); // Run once on mount
@@ -222,8 +225,8 @@ export default function Home() {
 
         {/* Resizable Code Box */}
         <ResizableBox
-            width={width} // Responsive width
-            height={codeSections == null ? 200 : 700}
+            width={width <=0 ? 1450 : width} // Responsive width
+            height={height <= 0 ? 400 : codeSectionRef.current ? 800 : height }
             minConstraints={[300, 200]}
             maxConstraints={[Infinity, 800]}
             resizeHandles={["s"]}
