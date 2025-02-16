@@ -70,57 +70,46 @@ export default function Home() {
   };
 
   const handleGenerateCode = async () => {
+    if (!entity.trim() || fields.length === 0) return;
 
-    const validationErrors: { entity?: string; fields?: string } = {};
-
-    if (entity.trim() === '') {
-      validationErrors.entity = 'Entity name is required.';
-    }
-    if (fields.length === 0) {
-      validationErrors.fields = 'At least one field is required.';
-    }
-  
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    setErrors({});
     setLoading(true);
     setCodeSections({});
     setCopied(false);
-   // Scroll to the code section after code is generated
-   setTimeout(() => {
-    if (codeSectionRef.current) {
-      codeSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
- 
-  }, 100);
-    try {
-      const response = await fetch('/api/generatecrud', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entity, fields, database, language }),
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+
+    const response = await fetch('/api/generatecrud', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entity, fields, database, language }),
+    });
+
+    if (!response.body) return;
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+
+    let accumulatedData = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      accumulatedData += decoder.decode(value, { stream: true });
+
+      try {
+        const parsed = JSON.parse(accumulatedData);
+        setCodeSections(parsed);
+
+        if (!activeTab) {
+          const firstTab = Object.keys(parsed)[0];
+          if (firstTab) setActiveTab(firstTab);
+        }
+      } catch (error) {
+        console.log('Partial data received, waiting for complete chunk...');
       }
-  
-      const data = await response.json();
-  
-      // ✅ Correctly set the parsed JSON as code sections
-      setCodeSections(data);
-  
-      // ✅ Set the first tab as active
-      const firstTab = Object.keys(data)[0] || '';
-      setActiveTab(firstTab);
-  
-    } catch (error) {
-      console.error('Error fetching or parsing JSON:', error);
-      setCodeSections({ Error: 'Failed to fetch or parse code' });
     }
-    setLoading(false)
-;
+
+    setLoading(false);
+    codeSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   
 
