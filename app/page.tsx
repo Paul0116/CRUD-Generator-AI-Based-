@@ -226,7 +226,7 @@ export default function Home() {
         {/* Resizable Code Box */}
         <ResizableBox
             width={width <=0 ? 1450 : width} // Responsive width
-            height={height <= 0 ? 400 : codeSectionRef.current ? 800 : height }
+            height={height <= 0 ? 400 : Object.keys(codeSections).length > 0 ? 800 : height }
             minConstraints={[300, 200]}
             maxConstraints={[Infinity, 800]}
             resizeHandles={["s"]}
