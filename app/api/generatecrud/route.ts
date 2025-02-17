@@ -30,7 +30,7 @@ const languagePrompts: Record<LanguageType, (entity: string, fields: string, dat
     2️⃣ **DO NOT** wrap JSON in markdown (\\\json ... \\\).
     Output JSON:
     {
-      "model": "<Java entity code>",
+      "Model": "<Java entity code>",
       "Repository": "<Java repository code>",
       "Service": "<Java service code>",
       "Controller": "<Java controller code>"
@@ -56,8 +56,8 @@ const languagePrompts: Record<LanguageType, (entity: string, fields: string, dat
     {
       "${entity} component page": "<React components code>",
       "${entity} slice": "<React slice code>",
-      "api": "<React RTK Query API>",
-      "types": "<React types code>"
+      "Api": "<React RTK Query API>",
+      "Types": "<React types code>"
     }
   `,
   'next js': (entity, fields) => `
