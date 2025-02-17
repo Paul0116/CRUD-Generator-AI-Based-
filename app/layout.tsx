@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "API Based CRUD Generation Web App",
+  title: "AI Based CRUD Generation Web App",
   description: "Created and Develop by Paul Christian Argao",
 };
 
